@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GCL Lexical Scanner</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 GCL Lexical Scanner</h1>
+        <p class="subtitle">Lexical Analysis untuk Guarded Command Language</p>
+        
+        <div class="input-section">
+            <label for="gcl-input">Masukkan Kode GCL:</label>
+            <textarea id="gcl-input" placeholder="Contoh:
+// Absolute Value Computation
+x, y, z int;
+{x ≥ 0}
+if x ≤ 0 →
+  z ← -x
+[] x > 0 →
+  z ← x
+fi;
+y ← z * 2;
+{y ≥ 0}" rows="14"></textarea>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button onclick="scanTokens()">Scan Tokens</button>
+                <button onclick="loadDefaultExample()" style="background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);">Load Default Example</button>
+                <button onclick="clearInput()" style="background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%);">Clear</button>
+            </div>
+        </div>
+
+        <div class="output-section">
+            <h2>Output Tokens:</h2>
+            <table id="tokens-table">
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Lexeme</th>
+                        <th>Token Type</th>
+                        <th>Line</th>
+                        <th>Column</th>
+                    </tr>
+                </thead>
+                <tbody id="tokens-body">
+                </tbody>
+            </table>
+            <div id="error-message" class="error"></div>
+        </div>
+
+        <div class="info-section">
+            <h3>📋 Token Types yang Didukung (35 tokens):</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <strong>🔤 Keywords (9):</strong>
+                    <ul style="margin: 8px 0; padding-left: 20px;">
+                        <li>if, then, else, fi</li>
+                        <li>do, od</li>
+                        <li>skip, int</li>
+                        <li>mod</li>
+                    </ul>
+                </div>
+                <div>
+                    <strong>🔢 Operators (15):</strong>
+                    <ul style="margin: 8px 0; padding-left: 20px;">
+                        <li><strong>Comparison:</strong> =, <, >, ≤, ≥, ≠</li>
+                        <li><strong>Logical:</strong> ¬, ∧, ∨</li>
+                        <li><strong>Arithmetic:</strong> +, -, *, /, ^</li>
+                    </ul>
+                </div>
+                <div>
+                    <strong>➡️ Assignment & Control (2):</strong>
+                    <ul style="margin: 8px 0; padding-left: 20px;">
+                        <li>← (assignment)</li>
+                        <li>→ (guard)</li>
+                    </ul>
+                </div>
+                <div>
+                    <strong>⚙️ Symbols (10):</strong>
+                    <ul style="margin: 8px 0; padding-left: 20px;">
+                        <li>( ) { } [ ]</li>
+                        <li>; : , .</li>
+                    </ul>
+                </div>
+            </div>
+            <p style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
+                <strong>Sumber:</strong> Lexical tokens berdasarkan GCL 1-3 materials + rekomendasi untuk robustness
+            </p>
+        </div>
+
+        <div id="load-status" style="display: none; margin-top: 20px; padding: 12px; background-color: #c8e6c9; border-left: 4px solid #4caf50; border-radius: 4px; color: #2e7d32;">
+            ✅ Default example loaded - Click "Scan Tokens" to analyze
+        </div>
+    </div>
+
+    <script src="lexer.js"></script>
+    <script>
+        // ===== AUTO-LOAD COMPACT DEFAULT EXAMPLE ON PAGE OPEN =====
+        
+        const DEFAULT_EXAMPLE = "x, y int;\n{x > 0}\nif x mod 2 = 0 ->\n  y <- x / 2\n[] x mod 2 = 1 ->\n  y <- (x + 1) / 2\nfi;\ndo y > 1 ->\n  y <- y - 1\nod";
+
+        function loadDefaultExample() {
+            const textarea = document.getElementById('gcl-input');
+            textarea.value = DEFAULT_EXAMPLE;
+            scanTokens();
+        }
+
+        function clearInput() {
+            const textarea = document.getElementById('gcl-input');
+            textarea.value = '';
+            document.getElementById('tokens-body').innerHTML = '';
+            document.getElementById('error-message').classList.remove('show');
+            document.getElementById('error-message').textContent = '';
+        }
+
+        // Auto-load on page open (NO auto-scan to avoid character issues)
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load default example into textarea
+            const textarea = document.getElementById('gcl-input');
+            textarea.value = DEFAULT_EXAMPLE;
+            
+            // Show status message
+            const statusDiv = document.getElementById('load-status');
+            statusDiv.textContent = '✅ Default example loaded - Click "Scan Tokens" to analyze';
+            statusDiv.style.display = 'block';
+            
+            // Hide status after 4 seconds
+            setTimeout(() => {
+                statusDiv.style.opacity = '0';
+                statusDiv.style.transition = 'opacity 0.3s ease';
+            }, 4000);
+
+            // Keyboard shortcut for scanning (Ctrl+Enter)
+            textarea.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    scanTokens();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
